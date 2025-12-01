@@ -310,7 +310,7 @@ async def cmd_title(message: types.Message):
     if rates:
         currencies_with_titles = get_all_currencies_with_titles(rates)
         await message.answer(
-            f"📝 Полные названия всех валют:\n\n{currencies_with_titles}",
+            f"📝 Полный список всех валют (код - название):\n\n{currencies_with_titles}",
             reply_markup=get_menu_keyboard()
         )
     else:
@@ -461,7 +461,7 @@ async def handle_menu_callback(callback: types.CallbackQuery, callback_data: Men
         if rates:
             currencies_with_titles = get_all_currencies_with_titles(rates)
             await callback.message.edit_text(
-                f"📝 Полные названия всех валют:\n\n{currencies_with_titles}",
+                f"📝 Полный список всех валют (код - название):\n\n{currencies_with_titles}",
                 reply_markup=get_menu_keyboard()
             )
         else:
