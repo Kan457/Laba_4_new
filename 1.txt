@@ -98,22 +98,22 @@ def get_all_currencies_with_titles(rates):
 def get_menu_keyboard():
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="💲 /question - Курс валюты", callback_data=MenuCallback(action="question").pack())
+            InlineKeyboardButton(text="💲 /question", callback_data=MenuCallback(action="question").pack())
         ],
         [
-            InlineKeyboardButton(text="📊 /compare - Сравнить валюты", callback_data=MenuCallback(action="compare").pack())
+            InlineKeyboardButton(text="📊 /compare", callback_data=MenuCallback(action="compare").pack())
         ],
         [
-            InlineKeyboardButton(text="📈 /chart - График курса", callback_data=MenuCallback(action="chart").pack())
+            InlineKeyboardButton(text="📈 /chart", callback_data=MenuCallback(action="chart").pack())
         ],
         [
-            InlineKeyboardButton(text="📅 /date - Установить дату", callback_data=MenuCallback(action="date").pack())
+            InlineKeyboardButton(text="📅 /date", callback_data=MenuCallback(action="date").pack())
         ],
         [
-            InlineKeyboardButton(text="📝 /title - Список всех валют", callback_data=MenuCallback(action="title").pack())
+            InlineKeyboardButton(text="📝 /title", callback_data=MenuCallback(action="title").pack())
         ],
         [
-            InlineKeyboardButton(text="🗿 /help - Помощь", callback_data=MenuCallback(action="help").pack())
+            InlineKeyboardButton(text="🗿 /help", callback_data=MenuCallback(action="help").pack())
         ]
     ])
     return keyboard
