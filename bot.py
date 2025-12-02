@@ -10,21 +10,26 @@ from aiogram.filters import Command
 from aiogram.types import BotCommand, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters.callback_data import CallbackData
 
+# базовая настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 TOKEN = "8436005748:AAEJaC4TKd8MOkRJmCkNcT6K_pRUh7z_wOA"
+MY_ER_BASE = "https://cbr.ru/scripts/XML_daily.asp"
 
-MY_ER_BASE = "https://cbr.ru/scripts/XML_daily.asp" 
-
+# выбранная пользователем дата (если None — берётся текущая)
 selected_date = None
 
+# экземпляры бота и диспетчера aiogram
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
+# callback‑данные для inline‑кнопок меню
 class MenuCallback(CallbackData, prefix="menu"):
     action: str
 
+# загрузка курсов валют с сайта ЦБ РФ
 def get_currency_rates(date_str=None):
     global selected_date
     if date_str:
@@ -55,12 +60,14 @@ def get_currency_rates(date_str=None):
         logger.error(f"Ошибка при получении курсов: {e}")
         return None
 
+# форматирование информации по одной валюте
 def format_currency_rate(rates, code):
     if rates and code in rates:
         currency = rates[code]
         return f"{currency['name']}\n{currency['nominal']} {code} = {currency['value']:.2f} RUB"
     return f"Валюта {code} не найдена"
 
+# формирование строки со всеми кодами валют
 def get_all_currencies_list(rates):
     if not rates:
         return "Не удалось получить список валют"
@@ -74,6 +81,7 @@ def get_all_currencies_list(rates):
     
     return "\n".join(currency_list)
 
+# формирование списка валют с полными названиями
 def get_all_currencies_with_titles(rates):
     if not rates:
         return "Не удалось получить список валют"
