@@ -1,5 +1,7 @@
 import logging
 import re
+import asyncio
+
 import requests
 from datetime import datetime, timedelta
 from xml.etree import ElementTree as ET
@@ -7,7 +9,6 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import BotCommand, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters.callback_data import CallbackData
-import asyncio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,7 +25,6 @@ dp = Dispatcher()
 class MenuCallback(CallbackData, prefix="menu"):
     action: str
 
-# Получает курсы валют с сайта ЦБ РФ
 def get_currency_rates(date_str=None):
     global selected_date
     if date_str:
@@ -55,14 +55,12 @@ def get_currency_rates(date_str=None):
         logger.error(f"Ошибка при получении курсов: {e}")
         return None
 
-# Форматирует информацию о валюте для вывода
 def format_currency_rate(rates, code):
     if rates and code in rates:
         currency = rates[code]
         return f"{currency['name']}\n{currency['nominal']} {code} = {currency['value']:.2f} RUB"
     return f"Валюта {code} не найдена"
 
-# Возвращает список всех аббревиатур валют
 def get_all_currencies_list(rates):
     if not rates:
         return "Не удалось получить список валют"
@@ -76,7 +74,6 @@ def get_all_currencies_list(rates):
     
     return "\n".join(currency_list)
 
-# Возвращает список всех валют с полными названиями
 def get_all_currencies_with_titles(rates):
     if not rates:
         return "Не удалось получить список валют"
@@ -94,17 +91,16 @@ def get_all_currencies_with_titles(rates):
     
     return "\n\n".join(result_lines)
 
-# Создает интерактивное меню с кнопками
+
 def get_menu_keyboard():
+
+    """Клавиатура с основными командами бота."""
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="💲 /question - Курс валюты", callback_data=MenuCallback(action="question").pack())
         ],
         [
             InlineKeyboardButton(text="📊 /compare - Сравнить валюты", callback_data=MenuCallback(action="compare").pack())
-        ],
-        [
-            InlineKeyboardButton(text="📈 /chart - График курса", callback_data=MenuCallback(action="chart").pack())
         ],
         [
             InlineKeyboardButton(text="📅 /date - Установить дату", callback_data=MenuCallback(action="date").pack())
@@ -118,21 +114,20 @@ def get_menu_keyboard():
     ])
     return keyboard
 
-# Возвращает текст со списком доступных команд
 def get_commands_text():
+    """Текст со списком доступных команд."""
     return (
         "\n\nДоступные команды:\n"
         "/question - получить курс валюты\n"
         "/compare - сравнить курсы валют\n"
-        "/chart - показать график курсов\n"
         "/date - установить дату для запросов (формат: ДД/ММ/ГГГГ)\n"
         "/title - показать все названия валют\n"
         "/help - помощь"
     )
 
-# Обработчик команды /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    """Стартовое приветствие и вывод основного меню."""
     welcome_text = (
         "Привет! Я бот для работы с курсами валют ЦБ РФ.\n\n"
         "💡 Доступные команды:\n\n"
@@ -140,8 +135,6 @@ async def cmd_start(message: types.Message):
         "   Пример: /question USD\n\n"
         "📊 /compare - Сравнить курсы двух валют\n"
         "   Пример: /compare USD EUR\n\n"
-        "📈 /chart - Показать график изменения курсов\n"
-        "   Пример: /chart USD\n\n"
         "📅 /date - Установить дату для запросов\n"
         "   Пример: /date 02/03/2002\n\n"
         "📝 /title - Показать все названия валют\n\n"
@@ -150,17 +143,15 @@ async def cmd_start(message: types.Message):
     )
     await message.answer(welcome_text, reply_markup=get_menu_keyboard())
 
-# Обработчик команды /help
 @dp.message(Command("help"))
 async def cmd_help(message: types.Message):
+    """Вывод краткой справки по командам."""
     help_text = (
         "💡 Доступные команды:\n\n"
         "💲 /question - Задать вопрос о курсе валюты\n"
         "   Пример: /question USD\n\n"
         "📊 /compare - Сравнить курсы двух валют\n"
         "   Пример: /compare USD EUR\n\n"
-        "📈 /chart - Показать график изменения курсов\n"
-        "   Пример: /chart USD\n\n"
         "📅 /date - Установить дату для запросов\n"
         "   Пример: /date 02/03/2002\n\n"
         "📝 /title - Показать все названия валют\n\n"
@@ -168,9 +159,9 @@ async def cmd_help(message: types.Message):
     )
     await message.answer(help_text, reply_markup=get_menu_keyboard())
 
-# Обработчик команды /question
 @dp.message(Command("question"))
 async def cmd_question(message: types.Message):
+    """Получение курса одной валюты по коду."""
     args = message.text.split()[1:] if len(message.text.split()) > 1 else []
     
     rates = get_currency_rates()
@@ -206,9 +197,9 @@ async def cmd_question(message: types.Message):
     else:
         await message.answer(f"👺 Ошибка при получении данных с сайта ЦБ РФ", reply_markup=get_menu_keyboard())
 
-# Обработчик команды /compare
 @dp.message(Command("compare"))
 async def cmd_compare(message: types.Message):
+    """Сравнение курсов двух валют."""
     args = message.text.split()[1:] if len(message.text.split()) > 1 else []
     
     rates = get_currency_rates()
@@ -262,9 +253,9 @@ async def cmd_compare(message: types.Message):
     else:
         await message.answer(f"👺 Ошибка при получении данных с сайта ЦБ РФ", reply_markup=get_menu_keyboard())
 
-# Обработчик команды /date
 @dp.message(Command("date"))
 async def cmd_date(message: types.Message):
+    """Установка или сброс даты для запросов."""
     global selected_date
     args = message.text.split()[1:] if len(message.text.split()) > 1 else []
     
@@ -306,9 +297,9 @@ async def cmd_date(message: types.Message):
     except ValueError:
         await message.answer(f"👺 Неверная дата! Проверьте правильность введенной даты.", reply_markup=get_menu_keyboard())
 
-# Обработчик команды /title
 @dp.message(Command("title"))
 async def cmd_title(message: types.Message):
+    """Вывод всех валют с полными названиями."""
     rates = get_currency_rates()
     
     if rates:
@@ -320,20 +311,9 @@ async def cmd_title(message: types.Message):
     else:
         await message.answer(f"👺 Ошибка при получении данных с сайта ЦБ РФ", reply_markup=get_menu_keyboard())
 
-# Обработчик команды /chart
-@dp.message(Command("chart"))
-async def cmd_chart(message: types.Message):
-    await message.answer(
-        f"📈 График изменения курса валюты\n\n"
-        f"Использование: /chart <валюта>\n"
-        f"Пример: /chart USD\n\n"
-        f"Показывает изменение курса за последние 7 дней",
-        reply_markup=get_menu_keyboard()
-    )
-
-# Обработчик текстовых сообщений
 @dp.message()
 async def handle_text(message: types.Message):
+    """Обработка текстовых сообщений без команд."""
     text_original = message.text.strip()
     text = text_original.upper()
     parts = text.split()
@@ -416,9 +396,9 @@ async def handle_text(message: types.Message):
             reply_markup=get_menu_keyboard()
         )
 
-# Обработчик нажатий на кнопки меню
 @dp.callback_query(MenuCallback.filter())
 async def handle_menu_callback(callback: types.CallbackQuery, callback_data: MenuCallback):
+    """Обработка нажатий на кнопки меню."""
     action = callback_data.action
     
     if action == "question":
@@ -438,14 +418,6 @@ async def handle_menu_callback(callback: types.CallbackQuery, callback_data: Men
             f"Использование: введите две валюты через пробел\n"
             f"Пример: USD EUR или /compare USD EUR\n\n"
             f"📋 Все доступные валюты:\n{currencies_list}",
-            reply_markup=get_menu_keyboard()
-        )
-    elif action == "chart":
-        await callback.message.edit_text(
-            f"📈 График изменения курса валюты\n\n"
-            f"Использование: /chart <валюта>\n"
-            f"Пример: /chart USD\n\n"
-            f"Показывает изменение курса за последние 7 дней",
             reply_markup=get_menu_keyboard()
         )
     elif action == "date":
@@ -480,8 +452,6 @@ async def handle_menu_callback(callback: types.CallbackQuery, callback_data: Men
             "   Пример: /question USD\n\n"
             "📊 /compare - Сравнить курсы двух валют\n"
             "   Пример: /compare USD EUR\n\n"
-            "📈 /chart - Показать график изменения курсов\n"
-            "   Пример: /chart USD\n\n"
             "📅 /date - Установить дату для запросов\n"
             "   Пример: /date 02/03/2002\n\n"
             "📝 /title - Показать все названия валют\n\n"
@@ -491,13 +461,12 @@ async def handle_menu_callback(callback: types.CallbackQuery, callback_data: Men
     
     await callback.answer()
 
-# Устанавливает список команд бота для автодополнения
 async def set_bot_commands():
+    """Регистрация команд бота в интерфейсе Telegram."""
     commands = [
         BotCommand(command="start", description="Начать работу с ботом"),
         BotCommand(command="question", description="Получить курс валюты"),
         BotCommand(command="compare", description="Сравнить курсы валют"),
-        BotCommand(command="chart", description="Показать график курсов"),
         BotCommand(command="date", description="Установить дату для запросов"),
         BotCommand(command="title", description="Показать все названия валют"),
         BotCommand(command="help", description="Помощь"),
@@ -505,8 +474,8 @@ async def set_bot_commands():
     await bot.set_my_commands(commands)
     logger.info("Команды бота установлены")
 
-# Главная функция для запуска бота
 async def main():
+    """Точка входа: регистрация команд и запуск поллинга."""
     await set_bot_commands()
     logger.info("Бот запущен")
     await dp.start_polling(bot)
